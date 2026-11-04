@@ -75,6 +75,8 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 .hist .after{font-size:13px;color:var(--muted)}
 .banner{background:#fff8e6;border:1px solid #f3dfa8;border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:15px}
 .banner .btn{height:42px;font-size:15px;margin-left:auto;white-space:nowrap}
+.banner.warn{background:#fdecec;border-color:#f2c0c0;flex-direction:column;align-items:stretch}
+.banner.warn .btn{margin-left:0;width:100%}
 .empty{text-align:center;color:var(--muted);padding:40px 16px}
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:20;display:none;align-items:flex-end;justify-content:center}
 .sheet-bg.on{display:flex}
@@ -125,7 +127,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.3 (오프라인 지원)
+   CIBO 선결재 장부 v1.5 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -134,6 +136,17 @@ const DEFAULT_TPL = '[{가게}] 선결재 장부 안내\n{이름} 님, {날짜} 
 const TYPE = {carry:'이월', charge:'충전', use:'사용'};
 const LOGO = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#2f8f4e" stroke-width="5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#d23b3b" stroke-width="4"/><text x="50" y="59" text-anchor="middle" font-size="25" font-weight="700" fill="#5b7682" font-family="Arial,Helvetica,sans-serif" letter-spacing="1">CIBO</text></svg>`;
 const SHOP_INFO = `<div class="foot"><div>서울 동대문구 천장산로4길 45 1층</div><a href="https://www.instagram.com/cibo_pasta" target="_blank" rel="noopener">Instagram @cibo_pasta</a></div>`;
+/* 카카오톡·인스타 등 앱 안의 내장 브라우저 감지 (파일 저장·공유가 막힘) */
+const UA = navigator.userAgent;
+const IN_KAKAO = /KAKAOTALK/i.test(UA);
+const IN_APP = IN_KAKAO || /Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps|everytimeApp/i.test(UA);
+function openExternal(){
+  const url = location.href.split('#')[0];
+  if (IN_KAKAO) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url); return; }
+  if (/Android/i.test(UA)) { location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end'; return; }
+  toast('오른쪽 위(또는 아래) 메뉴에서 "Safari로 열기"를 눌러 주세요', null, null, 6000);
+}
+const inAppBanner = () => IN_APP ? `<div class="banner warn"><span><b>카카오톡 안에서 열려 있어요.</b><br>여기서는 장부 저장·백업·공유가 제대로 안 돼요. 크롬(아이폰은 사파리)으로 열어 주세요.</span><button class="btn brand" onclick="openExternal()">다른 브라우저로 열기</button></div>` : '';
 const $ = s => document.querySelector(s);
 const app = $('#app');
 const state = {view:'list', cid:null, q:'', sort:'recent'};
@@ -273,6 +286,7 @@ function renderList(){
   <header class="top"><span class="logo">${LOGO}</span><h1>${esc(db.shop.name)} 선결재 장부</h1>
     <button class="iconbtn" onclick="go('settings')" aria-label="설정·백업">⚙</button></header>
   <main>
+    ${inAppBanner()}
     ${backupNeeded() ? `<div class="banner"><span>${db.lastBackup ? '마지막 백업 후 7일이 지났어요.' : '아직 백업한 적이 없어요.'}</span><button class="btn kakao" onclick="exportBackup()">지금 백업</button></div>` : ''}
     <div class="card">
       <div class="sum-top"><div><div class="muted small">전체 잔액 (손님 ${db.customers.length}명)</div><div class="sum-big">${won(total)}원</div></div></div>
@@ -537,7 +551,7 @@ function openShare(cid){
     <button class="btn kakao full" onclick="shareBoth()">💬 문구 + 내역서 카톡으로 보내기</button>
     <div class="grid2"><button class="btn ghost" onclick="shareText()">문구만 보내기</button><button class="btn ghost" onclick="shareImage()">내역서만 보내기</button></div>
     <div class="grid2"><button class="btn ghost" onclick="copyText($('#smsg').value).then(()=>toast('문구를 복사했어요'))">문구 복사</button><button class="btn ghost" onclick="download(sh.file)">이미지 저장</button></div>
-    <p class="muted small">공유창에서 <b>카카오톡</b>을 고른 뒤 받을 사람을 선택하세요. 카톡이 사진만 보내고 문구를 빼면 <b>문구만 보내기</b>를 한 번 더 눌러 주세요. 전화번호는 내역서에 나오지 않아요.</p>`);
+    <p class="muted small">공유창에서 <b>카카오톡</b>을 고른 뒤 받을 사람을 선택하세요. 사진을 보낸 뒤 문구는 자동으로 복사돼 있으니, 카톡 입력창을 길게 눌러 <b>붙여넣기</b> 하세요. 전화번호는 내역서에 나오지 않아요.</p>`);
   setPeriod('recent');
 }
 async function setPeriod(p){
@@ -549,19 +563,29 @@ async function setPeriod(p){
   sh.file = file; sh.url = URL.createObjectURL(file);
   const img = $('#simg'); if (img) img.src = sh.url;
 }
-async function doShare({text, file, title}){
+/* 공유창 열기
+   카카오톡은 글자와 파일이 함께 오면 글자만 보내고 파일을 버리므로,
+   파일이 있으면 파일만 넘기고 글자는 클립보드에 복사해 따로 붙여넣게 한다. */
+async function doShare({text, file}){
   if (navigator.share) {
-    const data = {};
-    if (title) data.title = title;
-    if (text) data.text = text;
-    let fileOK = false;
-    if (file && navigator.canShare && navigator.canShare({files:[file]})) { data.files = [file]; fileOK = true; }
-    if (!file || fileOK) {
-      try { await navigator.share(data); return 'shared'; }
+    const fileOK = !!(file && navigator.canShare && navigator.canShare({files:[file]}));
+    if (file && fileOK) {
+      if (text) await copyText(text);
+      try {
+        await navigator.share({files:[file]});
+        if (text) toast('사진을 보냈어요. 문구는 복사해 뒀으니 카톡 입력창에 붙여넣어 주세요', null, null, 6000);
+        return 'shared';
+      } catch(e) { if (e.name === 'AbortError') return 'abort'; }
+    } else if (!file) {
+      try { await navigator.share({text}); return 'shared'; }
       catch(e) { if (e.name === 'AbortError') return 'abort'; }
     }
   }
   if (text) await copyText(text);
+  if (file && IN_APP) {
+    toast(text ? '문구는 복사했어요. 카톡 안에서는 파일을 보낼 수 없어요.' : '카톡 안에서는 파일을 저장·보낼 수 없어요.', '다른 브라우저로', openExternal, 6000);
+    return 'blocked';
+  }
   if (file) download(file);
   toast(text && file ? '바로 공유가 안 돼요. 문구는 복사, 파일은 저장했어요.' : text ? '바로 공유가 안 돼요. 문구를 복사했으니 카톡에 붙여넣어 주세요.' : '바로 공유가 안 돼요. 파일을 저장했으니 카톡에서 첨부해 주세요.', null, null, 4500);
   return 'fallback';
@@ -597,12 +621,14 @@ function renderSettings(){
   app.innerHTML = `
   <header class="top"><button class="iconbtn" onclick="goBack()" aria-label="뒤로">‹</button><h1>설정 · 백업</h1></header>
   <main>
+    ${inAppBanner()}
     <div class="card"><h2>백업 · 장부 보내기</h2>
       <p class="small" style="margin:0 0 12px">마지막 백업: <b>${lb}</b></p>
       <button class="btn kakao full" onclick="exportBackup()">💬 전체 장부 보내기 (백업 파일)</button>
       <button class="btn ghost full" onclick="exportCSV()">엑셀용 CSV 내보내기</button>
       <button class="btn ghost full" onclick="$('#imp').click()">백업 파일 불러오기</button>
-      <p class="muted small" style="margin:4px 2px 0">장부는 이 휴대폰 브라우저 안에만 저장돼요. 브라우저 기록·데이터를 지우면 장부도 지워지니, 일주일에 한 번 카카오톡 <b>'나와의 채팅'</b>으로 백업 파일을 보내 두세요.</p>
+      <div class="grid2"><button class="btn ghost" onclick="copyBackup()">백업 내용 복사</button><button class="btn ghost" onclick="openPasteImport()">붙여넣어 불러오기</button></div>
+      <p class="muted small" style="margin:4px 2px 0">장부는 이 휴대폰 브라우저 안에만 저장돼요. 브라우저 기록·데이터를 지우면 장부도 지워지니, 일주일에 한 번 카카오톡 <b>'나와의 채팅'</b>으로 백업 파일을 보내 두세요. 파일 보내기가 안 되면 <b>백업 내용 복사</b> 후 '나와의 채팅'에 붙여넣어 두면 돼요.</p>
     </div>
     <div class="card"><h2>가게 · 알림 문구</h2>
       <label class="fld">가게 이름<input id="sname" value="${esc(db.shop.name)}"></label>
@@ -622,7 +648,7 @@ function renderSettings(){
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
     ${SHOP_INFO}
-    <div class="foot">CIBO 선결재 장부 v1.3 (오프라인 지원)</div>
+    <div class="foot">CIBO 선결재 장부 v1.5 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
@@ -638,11 +664,41 @@ function setPin(){
   db.shop.pin = v; save(); toast('비밀번호를 설정했어요'); render();
 }
 function clearPin(){ db.shop.pin = ''; save(); toast('비밀번호를 해제했어요'); render(); }
+const backupText = () => JSON.stringify({...db, shop:{...db.shop, pin:''}, exportedAt:new Date().toISOString()});
+function markBackup(){ db.lastBackup = new Date().toISOString(); save(); }
 async function exportBackup(){
-  const data = {...db, shop:{...db.shop, pin:''}, exportedAt:new Date().toISOString()};
-  const file = new File([JSON.stringify(data)], `${db.shop.name}_장부백업_${today()}.txt`, {type:'text/plain'});
-  const r = await doShare({file, title:`${db.shop.name} 장부 백업`});
-  if (r !== 'abort') { db.lastBackup = new Date().toISOString(); save(); render(); if (r === 'shared') toast('백업 파일을 보냈어요'); }
+  const file = new File([backupText()], `${db.shop.name}_장부백업_${today()}.txt`, {type:'text/plain'});
+  if (IN_APP) { openBackupHelp(); return; }
+  const r = await doShare({file});
+  if (r === 'shared' || r === 'fallback') { markBackup(); render(); if (r === 'shared') toast('백업 파일을 보냈어요'); }
+}
+function openBackupHelp(){
+  openSheet(`<div class="sheet-h"><b>백업하기</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <p style="margin:4px 2px 14px">카카오톡 안에서는 백업 파일을 만들 수 없어요. 두 가지 방법 중 하나를 쓰세요.</p>
+    <button class="btn brand full" onclick="openExternal()">① 크롬·사파리로 열어 백업</button>
+    <button class="btn ghost full" onclick="copyBackup()">② 백업 내용 복사해 두기</button>
+    <p class="muted small">②는 복사한 글을 카톡 '나와의 채팅'에 붙여넣어 보관하는 방법이에요. 나중에 그 글을 길게 눌러 복사한 뒤 <b>붙여넣어 불러오기</b>로 복원해요.</p>`);
+}
+async function copyBackup(){
+  await copyText(backupText());
+  markBackup();
+  if (sheetOn) closeSheet(); else render();
+  toast('백업 내용을 복사했어요. 카톡 나와의 채팅에 붙여넣어 두세요', null, null, 5000);
+}
+function openPasteImport(){
+  openSheet(`<div class="sheet-h"><b>붙여넣어 불러오기</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <p class="small" style="margin:4px 2px 10px">나와의 채팅에 보관한 백업 내용을 길게 눌러 <b>전체 복사</b>한 뒤 아래 칸에 붙여넣으세요.</p>
+    <label class="fld"><textarea id="pasteBox" rows="6" placeholder='{"app":"prepaid-ledger", ...'></textarea></label>
+    <button class="btn brand full" onclick="importText($('#pasteBox').value)">불러오기</button>`);
+}
+function importText(text){
+  let d; try { d = JSON.parse(String(text).trim()); } catch(err) { toast('백업 내용을 읽을 수 없어요. 처음부터 끝까지 전부 붙여넣었는지 확인해 주세요', null, null, 5000); return; }
+  if (!d || d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결재 장부 백업이 아니에요'); return; }
+  confirmSheet('장부 불러오기', `손님 ${d.customers.length}명, 기록 ${d.entries.length}건을 불러옵니다. 지금 휴대폰에 있는 장부(손님 ${db.customers.length}명)는 덮어써져요.`, '불러오기', true, () => {
+    const pin = db.shop.pin;
+    db = normalize(d); db.shop.pin = pin; recomputeAll(); save();
+    pending = () => go('list'); closeSheet(); toast('장부를 불러왔어요');
+  });
 }
 async function exportCSV(){
   const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -651,20 +707,12 @@ async function exportCSV(){
   for (const c of byName) for (const e of calc(entriesOf(c.id)).sorted)
     lines.push([q(c.name), q(c.phone), q(c.bookNo), e.date, TYPE[e.type], e.type === 'use' ? -e.amount : e.amount, e.balanceAfter, q(e.memo)].join(','));
   const file = new File(['\uFEFF' + lines.join('\r\n')], `${db.shop.name}_장부_${today()}.csv`, {type:'text/csv'});
-  await doShare({file, title:`${db.shop.name} 장부 CSV`});
+  await doShare({file});
 }
 $('#imp').addEventListener('change', e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   const rd = new FileReader();
-  rd.onload = () => {
-    let d; try { d = JSON.parse(rd.result); } catch(err) { toast('백업 파일을 읽을 수 없어요'); return; }
-    if (d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결재 장부 백업 파일이 아니에요'); return; }
-    confirmSheet('장부 불러오기', `손님 ${d.customers.length}명, 기록 ${d.entries.length}건을 불러옵니다. 지금 휴대폰에 있는 장부(손님 ${db.customers.length}명)는 덮어써져요.`, '불러오기', true, () => {
-      const pin = db.shop.pin;
-      db = normalize(d); db.shop.pin = pin; recomputeAll(); save();
-      closeSheet(); toast('장부를 불러왔어요');
-    });
-  };
+  rd.onload = () => importText(rd.result);
   rd.readAsText(f);
 });
 function askReset(){
@@ -701,6 +749,7 @@ try { if (navigator.storage && navigator.storage.persist) navigator.storage.pers
 /* ---------- 시작 ---------- */
 recomputeAll();
 render();
+try { if (IN_KAKAO && !sessionStorage.getItem('cibo-ext')) { sessionStorage.setItem('cibo-ext', '1'); setTimeout(openExternal, 600); } } catch(e) {}
 if (db.shop.pin) showLock();
 </script>
 </body>
