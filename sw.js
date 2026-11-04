@@ -2,7 +2,7 @@
    처음 한 번 인터넷으로 열면 프로그램 파일을 휴대폰에 저장해 두고,
    그 뒤로는 인터넷 없이도 열립니다. 인터넷이 되면 뒤에서 새 버전을 받아
    다음 실행부터 반영합니다. (장부 데이터는 여기서 다루지 않음) */
-const CACHE = 'cibo-ledger-v1.2';
+const CACHE = 'cibo-ledger-v1.3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

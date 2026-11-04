@@ -112,7 +112,8 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 .dots i.f{background:var(--brand)}
 .shake{animation:sh .3s}
 @keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.foot{font-size:13px;color:var(--muted);text-align:center;margin-top:20px}
+.foot{font-size:13px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.7}
+.foot a{color:var(--brand);font-weight:700;text-decoration:none}
 </style>
 </head>
 <body>
@@ -124,7 +125,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.2 (오프라인 지원)
+   CIBO 선결재 장부 v1.3 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -132,6 +133,7 @@ const KEY = 'cibo-ledger-v1';
 const DEFAULT_TPL = '[{가게}] 선결재 장부 안내\n{이름} 님, {날짜} {금액}원 {구분}되었습니다.\n현재 잔액: {잔액}원\n감사합니다.';
 const TYPE = {carry:'이월', charge:'충전', use:'사용'};
 const LOGO = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#2f8f4e" stroke-width="5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#d23b3b" stroke-width="4"/><text x="50" y="59" text-anchor="middle" font-size="25" font-weight="700" fill="#5b7682" font-family="Arial,Helvetica,sans-serif" letter-spacing="1">CIBO</text></svg>`;
+const SHOP_INFO = `<div class="foot"><div>서울 동대문구 천장산로4길 45 1층</div><a href="https://www.instagram.com/cibo_pasta" target="_blank" rel="noopener">Instagram @cibo_pasta</a></div>`;
 const $ = s => document.querySelector(s);
 const app = $('#app');
 const state = {view:'list', cid:null, q:'', sort:'recent'};
@@ -283,6 +285,7 @@ function renderList(){
         <option value="high">잔액 많은순</option><option value="low">잔액 적은순</option>
       </select></div>
     <div id="results"></div>
+    ${SHOP_INFO}
   </main>
   <button class="fab" onclick="openCustomerForm()">＋ 손님 추가</button>`;
   $('#sort').value = state.sort;
@@ -618,7 +621,8 @@ function renderSettings(){
       <p class="small" style="margin:0 0 12px">손님 ${db.customers.length}명 · 기록 ${db.entries.length}건</p>
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
-    <div class="foot">CIBO 선결재 장부 v1.2 (오프라인 지원)</div>
+    ${SHOP_INFO}
+    <div class="foot">CIBO 선결재 장부 v1.3 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
