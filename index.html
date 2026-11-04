@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>CIBO 선결재 장부</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23fff' stroke='%232f8f4e' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23d23b3b' stroke-width='4'/%3E%3Ctext x='50' y='59' text-anchor='middle' font-size='25' font-weight='700' fill='%235b7682' font-family='Arial'%3ECIBO%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" id="appleicon">
+<style>
+:root{--ink:#2f3d44;--brand:#5b7682;--muted:#7d8b91;--line:#e3e8ea;--bg:#f5f7f7;--green:#2f8f4e;--red:#d23b3b;--warn:#b26a00;--kakao:#FEE500}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-size:18px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+header.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top))}
+header.top h1{font-size:20px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo{width:46px;height:46px;flex:none;display:block}
+.logo svg{width:100%;height:100%}
+.iconbtn{min-width:48px;height:48px;border:0;background:none;font-size:26px;color:var(--brand);border-radius:12px;padding:0 8px}
+.iconbtn.txt{font-size:17px;font-weight:700}
+main{padding:16px;padding-bottom:120px;max-width:640px;margin:0 auto}
+h2{font-size:18px;margin:22px 4px 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.center{text-align:center}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.sum-top{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.sum-big{font-size:28px;font-weight:800}
+.sum-sub{display:flex;gap:14px;margin-top:8px;font-size:15px}
+.plus{color:var(--green)} .minus{color:var(--red)}
+.search{width:100%;height:54px;font-size:18px;padding:0 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;outline:none}
+.search:focus{border-color:var(--brand)}
+select{height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 10px;font-size:16px}
+.listbar{margin:12px 2px 10px}
+.cust{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:10px;width:100%;text-align:left}
+.cust:active{background:#f0f4f5}
+.cust .nm{font-size:19px;font-weight:700}
+.cust .meta{font-size:14px;color:var(--muted)}
+.cust .bal{margin-left:auto;text-align:right;font-weight:800;font-size:19px;white-space:nowrap}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:#fff3e0;color:var(--warn);margin-left:6px;vertical-align:middle}
+.btn{height:54px;border-radius:14px;border:0;font-size:18px;font-weight:700;padding:0 16px}
+.btn.full{width:100%;margin-bottom:10px}
+.btn.green{background:var(--green);color:#fff}
+.btn.red{background:var(--red);color:#fff}
+.btn.brand{background:var(--brand);color:#fff}
+.btn.kakao{background:var(--kakao);color:#3a1d1d}
+.btn.sms{background:var(--brand);color:#fff}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn.ghost-red{background:#fff;border:1.5px solid #f2c9c9;color:var(--red)}
+.btn:disabled{opacity:.4}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));height:58px;border-radius:29px;padding:0 24px;background:var(--brand);color:#fff;border:0;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:6}
+.balcard .bal{font-size:44px;font-weight:800;color:var(--brand);line-height:1.15}
+.balcard .bal small{font-size:22px;margin-left:2px}
+.info{margin-top:8px;font-size:15px;color:var(--muted)}
+.year{font-size:14px;font-weight:700;color:var(--muted);margin:16px 6px 6px}
+.hist{display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;text-align:left}
+.hist .d{font-weight:700;min-width:52px}
+.chip{font-size:13px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap}
+.chip.charge{background:#e7f4ec;color:var(--green)}
+.chip.use{background:#fbe9e9;color:var(--red)}
+.chip.carry{background:#eef1f2;color:var(--brand)}
+.hist .memo{font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.hist .r{margin-left:auto;text-align:right;white-space:nowrap}
+.hist .amt{font-weight:800}
+.hist .after{font-size:13px;color:var(--muted)}
+.banner{background:#fff8e6;border:1px solid #f3dfa8;border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:15px}
+.banner .btn{height:42px;font-size:15px;margin-left:auto;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:40px 16px}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:22px 22px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sheet-h b{font-size:19px}
+.seg{display:flex;gap:8px;margin-bottom:8px}
+.seg button{flex:1;height:50px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:17px}
+.seg button.on.charge{background:var(--green);border-color:var(--green);color:#fff}
+.seg button.on.use{background:var(--red);border-color:var(--red);color:#fff}
+.seg button.on.carry,.seg button.on.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.amount{font-size:40px;font-weight:800;text-align:right;padding:6px 4px;border-bottom:2px solid var(--line);margin-bottom:10px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.quick button{height:46px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:16px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.keypad button{height:56px;font-size:24px;font-weight:600;border:1px solid var(--line);background:#f7f9f9;border-radius:12px}
+.keypad button:active,.quick button:active{background:#e6ecee}
+.fld{display:block;font-size:15px;color:var(--muted);margin-bottom:12px}
+.fld input,.fld textarea{display:block;width:100%;margin-top:4px;height:52px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font-size:18px;color:var(--ink);background:#fff;outline:none}
+.fld textarea{height:auto;padding:12px 14px;line-height:1.5;resize:vertical}
+.fld input:focus,.fld textarea:focus{border-color:var(--brand)}
+.preview{font-size:16px;margin:2px 2px 6px}
+.err{color:var(--red);font-size:15px;margin:0 2px 10px;min-height:0}
+.err button{margin-top:8px;height:44px;border-radius:10px;border:0;background:var(--green);color:#fff;font-weight:700;padding:0 14px;font-size:15px}
+.imgwrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px;background:#f7f9f9;min-height:120px}
+.imgwrap img{display:block;width:100%}
+.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(92px + env(safe-area-inset-bottom));background:#2f3d44;color:#fff;padding:12px 16px;border-radius:14px;display:flex;gap:14px;align-items:center;z-index:40;max-width:92%;font-size:16px;opacity:0;pointer-events:none;transition:.2s}
+.toast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.toast button{background:none;border:0;color:#9fe0b4;font-weight:800;font-size:16px;white-space:nowrap}
+.lock{position:fixed;inset:0;background:#fff;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.lock .logo{width:96px;height:96px;margin-bottom:12px}
+.lock .keypad{width:100%;max-width:320px}
+.dots{display:flex;gap:14px;margin:14px 0 22px;height:18px}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--brand)}
+.dots i.f{background:var(--brand)}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.foot{font-size:13px;color:var(--muted);text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="sheet-bg" id="sheetbg"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="imp" accept=".txt,.json,text/plain,application/json" hidden>
+
+<script>
+'use strict';
+/* =========================================================
+   CIBO 선결재 장부 v1.0  ·  제작: 다온기술 오창현
+   - 데이터는 이 기기 브라우저(localStorage)에만 저장
+   - 외상(마이너스 잔액) 불허, 사용자 1명
+   ========================================================= */
+const KEY = 'cibo-ledger-v1';
+const DEFAULT_TPL = '[{가게}] 선결재 장부 안내\n{이름} 님, {날짜} {금액}원 {구분}되었습니다.\n현재 잔액: {잔액}원\n감사합니다.';
+const TYPE = {carry:'이월', charge:'충전', use:'사용'};
+const LOGO = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#2f8f4e" stroke-width="5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#d23b3b" stroke-width="4"/><text x="50" y="59" text-anchor="middle" font-size="25" font-weight="700" fill="#5b7682" font-family="Arial,Helvetica,sans-serif" letter-spacing="1">CIBO</text></svg>`;
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const state = {view:'list', cid:null, q:'', sort:'recent'};
+
+/* ---------- 유틸 ---------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const won = n => (Math.round(Number(n)) || 0).toLocaleString('ko-KR');
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const md = s => `${Number(s.slice(5,7))}/${Number(s.slice(8,10))}`;
+const ymd = s => `${s.slice(0,4)}.${Number(s.slice(5,7))}.${Number(s.slice(8,10))}`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNum = v => { const d = String(v).replace(/\D/g, ''); return d ? Number(d).toLocaleString('ko-KR') : ''; };
+const numOf = v => Number(String(v).replace(/\D/g, '')) || 0;
+
+/* ---------- 저장소 ---------- */
+function emptyDb(){
+  return {app:'prepaid-ledger', version:1,
+    shop:{name:'CIBO', template:DEFAULT_TPL, lowAlert:30000, pin:''},
+    customers:[], entries:[], lastBackup:null};
+}
+function normalize(d){
+  const e = emptyDb();
+  return {
+    app:e.app, version:1,
+    shop:{...e.shop, ...(d.shop || {})},
+    customers:(d.customers || []).map(c => ({
+      id:String(c.id || uid()), name:String(c.name || '이름없음'), phone:String(c.phone || ''),
+      bookNo:c.bookNo ?? '', memo:String(c.memo || ''), createdAt:c.createdAt || new Date().toISOString()})),
+    entries:(d.entries || []).filter(x => TYPE[x.type] && /^\d{4}-\d{2}-\d{2}$/.test(x.date)).map((x, i) => ({
+      id:String(x.id || uid()), customerId:String(x.customerId), date:x.date, type:x.type,
+      amount:Math.abs(Math.round(Number(x.amount) || 0)), memo:String(x.memo || ''),
+      seq:Number(x.seq ?? i), balanceAfter:0, updatedAt:x.updatedAt || ''})),
+    lastBackup:d.lastBackup || null
+  };
+}
+function load(){
+  try { const s = localStorage.getItem(KEY); if (s) return normalize(JSON.parse(s)); } catch(e) {}
+  return emptyDb();
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e) { toast('저장하지 못했어요. 브라우저 저장공간을 확인해 주세요.'); }
+}
+let db = load();
+
+/* ---------- 잔액 계산 ---------- */
+function calc(list){
+  const s = [...list].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.seq - b.seq);
+  let bal = 0, min = 0;
+  for (const e of s) { bal += e.type === 'use' ? -e.amount : e.amount; e.balanceAfter = bal; if (bal < min) min = bal; }
+  return {sorted:s, min, balance:bal};
+}
+const getC = id => db.customers.find(c => c.id === id);
+const entriesOf = cid => db.entries.filter(e => e.customerId === cid);
+function recomputeAll(){
+  const ids = new Set(db.customers.map(c => c.id));
+  db.entries = db.entries.filter(e => ids.has(e.customerId));
+  let out = [];
+  for (const id of ids) out = out.concat(calc(entriesOf(id)).sorted);
+  db.entries = out;
+}
+function buildIndex(){
+  const m = new Map();
+  for (const c of db.customers) m.set(c.id, {balance:0, last:'', lastSeq:-1});
+  for (const e of db.entries) {
+    const v = m.get(e.customerId); if (!v) continue;
+    if (e.date > v.last || (e.date === v.last && e.seq > v.lastSeq)) { v.last = e.date; v.lastSeq = e.seq; v.balance = e.balanceAfter; }
+  }
+  return m;
+}
+/* 고객 한 명의 기록을 바꿔 보고, 잔액이 마이너스가 되면 거부(외상 불허) */
+function dry(cid, mutate){ return calc(mutate(entriesOf(cid).map(e => ({...e})))); }
+function tryApply(cid, mutate){
+  const r = dry(cid, mutate);
+  if (r.min < 0) return {ok:false, short:-r.min};
+  db.entries = db.entries.filter(e => e.customerId !== cid).concat(r.sorted);
+  save();
+  return {ok:true, balance:r.balance};
+}
+
+/* ---------- 화면 이동 (휴대폰 뒤로가기 지원) ---------- */
+let navOK = true, sheetOn = false, pending = null;
+try { history.replaceState({view:'list'}, ''); } catch(e) { navOK = false; }
+function push(s){ if (navOK) { try { history.pushState(s, ''); } catch(e) { navOK = false; } } }
+function go(view, cid){ state.view = view; state.cid = cid || null; push({view, cid:state.cid}); render(); window.scrollTo(0, 0); }
+function goBack(){ if (navOK) history.back(); else { state.view = 'list'; render(); } }
+window.addEventListener('popstate', e => {
+  if (sheetOn) { hideSheet(); afterSheet(); return; }
+  const s = e.state || {view:'list'}; state.view = s.view || 'list'; state.cid = s.cid || null; render(); window.scrollTo(0, 0);
+});
+function openSheet(html){
+  $('#sheet').innerHTML = html;
+  if (!sheetOn) { sheetOn = true; $('#sheetbg').classList.add('on'); push({...(history.state || {}), sheet:1}); }
+  $('#sheet').scrollTop = 0;
+}
+function hideSheet(){ sheetOn = false; $('#sheetbg').classList.remove('on'); $('#sheet').innerHTML = ''; }
+function closeSheet(){ if (!sheetOn) return; if (navOK) history.back(); else { hideSheet(); afterSheet(); } }
+function afterSheet(){ if (pending) { const p = pending; pending = null; p(); } else render(); }
+$('#sheetbg').addEventListener('click', e => { if (e.target.id === 'sheetbg') closeSheet(); });
+
+/* ---------- 알림 ---------- */
+let toastT;
+function toast(msg, label, fn, ms = 3000){
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${label ? `<button id="tbtn">${esc(label)}</button>` : ''}`;
+  t.classList.add('on');
+  if (label) $('#tbtn').onclick = () => { t.classList.remove('on'); fn(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms);
+}
+function confirmSheet(title, msg, okLabel, danger, onOk){
+  window._ok = onOk;
+  openSheet(`<div class="sheet-h"><b>${esc(title)}</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <p style="margin:6px 2px 18px">${esc(msg)}</p>
+    <button class="btn ${danger ? 'red' : 'brand'} full" onclick="_ok()">${esc(okLabel)}</button>
+    <button class="btn ghost full" onclick="closeSheet()">취소</button>`);
+}
+
+/* ---------- 렌더 ---------- */
+function render(){
+  if (state.view === 'detail' && getC(state.cid)) renderDetail();
+  else if (state.view === 'settings') renderSettings();
+  else { state.view = 'list'; renderList(); }
+}
+function backupNeeded(){
+  if (!db.entries.length) return false;
+  if (!db.lastBackup) return true;
+  return (Date.now() - Date.parse(db.lastBackup)) > 7 * 864e5;
+}
+
+function renderList(){
+  const idx = buildIndex(), ym = today().slice(0, 7);
+  let total = 0, chg = 0, use = 0;
+  for (const v of idx.values()) total += v.balance;
+  for (const e of db.entries) if (e.date.slice(0, 7) === ym) { if (e.type === 'charge') chg += e.amount; else if (e.type === 'use') use += e.amount; }
+  app.innerHTML = `
+  <header class="top"><span class="logo">${LOGO}</span><h1>${esc(db.shop.name)} 선결재 장부</h1>
+    <button class="iconbtn" onclick="go('settings')" aria-label="설정·백업">⚙</button></header>
+  <main>
+    ${backupNeeded() ? `<div class="banner"><span>${db.lastBackup ? '마지막 백업 후 7일이 지났어요.' : '아직 백업한 적이 없어요.'}</span><button class="btn kakao" onclick="exportBackup()">지금 백업</button></div>` : ''}
+    <div class="card">
+      <div class="sum-top"><div><div class="muted small">전체 잔액 (손님 ${db.customers.length}명)</div><div class="sum-big">${won(total)}원</div></div></div>
+      <div class="sum-sub"><span class="muted">${Number(ym.slice(5))}월</span><span class="plus">충전 +${won(chg)}</span><span class="minus">사용 −${won(use)}</span></div>
+    </div>
+    <input id="q" class="search" type="search" placeholder="🔍 이름 · 전화 뒷자리 · 장부번호" value="${esc(state.q)}" autocomplete="off">
+    <div class="row between listbar"><span class="muted small" id="cnt"></span>
+      <select id="sort" aria-label="정렬">
+        <option value="recent">최근 방문순</option><option value="name">이름순</option>
+        <option value="high">잔액 많은순</option><option value="low">잔액 적은순</option>
+      </select></div>
+    <div id="results"></div>
+    <div class="foot">CIBO 선결재 장부 · 제작 다온기술 오창현</div>
+  </main>
+  <button class="fab" onclick="openCustomerForm()">＋ 손님 추가</button>`;
+  $('#sort').value = state.sort;
+  $('#q').addEventListener('input', e => { state.q = e.target.value; renderResults(idx); });
+  $('#sort').addEventListener('change', e => { state.sort = e.target.value; renderResults(idx); });
+  renderResults(idx);
+}
+function renderResults(idx){
+  const q = state.q.trim(), dg = q.replace(/\D/g, '');
+  let list = db.customers.filter(c => {
+    if (!q) return true;
+    if (c.name.includes(q) || c.memo.includes(q)) return true;
+    if (dg) { const p = c.phone.replace(/\D/g, ''); if (dg.length >= 3 && p.includes(dg)) return true; if (String(c.bookNo) === dg) return true; }
+    return false;
+  });
+  const I = id => idx.get(id) || {balance:0, last:''};
+  const s = state.sort;
+  list.sort((a, b) => s === 'name' ? a.name.localeCompare(b.name, 'ko')
+    : s === 'high' ? I(b.id).balance - I(a.id).balance
+    : s === 'low' ? I(a.id).balance - I(b.id).balance
+    : (I(b.id).last || b.createdAt.slice(0,10)).localeCompare(I(a.id).last || a.createdAt.slice(0,10)));
+  $('#cnt').textContent = q ? `검색 결과 ${list.length}명` : `손님 ${list.length}명`;
+  if (!db.customers.length) { $('#results').innerHTML = `<div class="empty">아직 손님이 없어요.<br>아래 <b>＋ 손님 추가</b>를 눌러<br>종이 장부의 손님을 옮겨 보세요.</div>`; return; }
+  if (!list.length) { $('#results').innerHTML = `<div class="empty">찾는 손님이 없어요.</div>`; return; }
+  $('#results').innerHTML = list.map(c => {
+    const v = I(c.id), low = v.balance <= db.shop.lowAlert;
+    return `<button class="cust" onclick="go('detail','${c.id}')">
+      <div><div class="nm">${esc(c.name)}${low ? '<span class="badge">잔액 적음</span>' : ''}</div>
+      <div class="meta">${c.bookNo !== '' ? `장부 #${esc(c.bookNo)} · ` : ''}${v.last ? `${md(v.last)} 마지막 기록` : '기록 없음'}</div></div>
+      <div class="bal">${won(v.balance)}원</div></button>`;
+  }).join('');
+}
+
+function renderDetail(){
+  const c = getC(state.cid), r = calc(entriesOf(c.id));
+  const info = [c.bookNo !== '' ? `장부 #${esc(c.bookNo)}` : '', c.phone ? esc(c.phone) : '', c.memo ? esc(c.memo) : ''].filter(Boolean).join(' · ');
+  let rows = '', yr = '';
+  const thisYear = today().slice(0, 4);
+  for (const e of [...r.sorted].reverse()) {
+    const y = e.date.slice(0, 4);
+    if (y !== yr) { yr = y; rows += `<div class="year">${y}년${y === thisYear ? ' (올해)' : ''}</div>`; }
+    const sign = e.type === 'use' ? '−' : '+';
+    rows += `<button class="hist" onclick="openEntry('${c.id}',null,'${e.id}')">
+      <span class="d">${md(e.date)}</span><span class="chip ${e.type}">${TYPE[e.type]}</span>
+      <span class="memo">${esc(e.memo)}</span>
+      <span class="r"><div class="amt ${e.type === 'use' ? 'minus' : e.type === 'charge' ? 'plus' : ''}">${sign}${won(e.amount)}</div><div class="after">잔액 ${won(e.balanceAfter)}</div></span></button>`;
+  }
+  app.innerHTML = `
+  <header class="top"><button class="iconbtn" onclick="goBack()" aria-label="뒤로">‹</button><h1>${esc(c.name)}</h1>
+    <button class="iconbtn txt" onclick="openCustomerForm('${c.id}')">수정</button></header>
+  <main>
+    <div class="card balcard"><div class="muted small">현재 잔액${r.balance <= db.shop.lowAlert ? '<span class="badge">잔액 적음</span>' : ''}</div>
+      <div class="bal">${won(r.balance)}<small>원</small></div>${info ? `<div class="info">${info}</div>` : ''}</div>
+    <div class="grid2"><button class="btn green" onclick="openEntry('${c.id}','charge')">＋ 충전</button>
+      <button class="btn red" onclick="openEntry('${c.id}','use')">− 사용</button></div>
+    <button class="btn sms full" onclick="sendSMS('${c.id}')">📱 ${esc(c.name)} 님께 문자 바로 보내기</button>
+    <button class="btn kakao full" onclick="openShare('${c.id}')">💬 카톡으로 보내기 (받을 사람 선택)</button>
+    <h2>기록 ${r.sorted.length}건</h2>
+    ${rows || '<div class="empty">아직 기록이 없어요.</div>'}
+  </main>`;
+}
+
+/* ---------- 충전 / 사용 입력 ---------- */
+let es = null;
+function openEntry(cid, type, eid){
+  if (eid) { const e = db.entries.find(x => x.id === eid); if (!e) return;
+    es = {mode:'edit', cid, id:eid, type:e.type, amt:String(e.amount), date:e.date, memo:e.memo}; }
+  else es = {mode:'new', cid, id:uid(), type, amt:'', date:today(), memo:''};
+  const types = es.type === 'carry' ? ['carry'] : ['charge', 'use'];
+  openSheet(`<div class="sheet-h"><b>${es.mode === 'edit' ? '기록 수정' : '새 기록'} · ${esc(getC(cid).name)}</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <div class="seg">${types.map(t => `<button id="t-${t}" class="${t}" onclick="setType('${t}')">${t === 'charge' ? '＋ ' : t === 'use' ? '− ' : ''}${TYPE[t]}</button>`).join('')}</div>
+    <div class="amount" id="amt">0원</div>
+    <div class="quick"><button onclick="addAmt(10000)">+1만</button><button onclick="addAmt(50000)">+5만</button><button onclick="addAmt(100000)">+10만</button><button onclick="es.amt='';updEntry()">지우기</button></div>
+    <div class="keypad">${['1','2','3','4','5','6','7','8','9','00','0','⌫'].map(k => `<button onclick="kp('${k}')">${k}</button>`).join('')}</div>
+    <label class="fld">날짜<input type="date" id="edate" value="${es.date}" max="${today()}"></label>
+    <label class="fld">메모 (선택)<input id="ememo" value="${esc(es.memo)}" placeholder="예: 점심 4인" autocomplete="off"></label>
+    <div class="preview" id="prev"></div><div class="err" id="err"></div>
+    <button class="btn brand full" id="esave" onclick="saveEntry()">저장</button>
+    ${es.mode === 'edit' ? '<button class="btn ghost-red full" onclick="askDeleteEntry()">이 기록 삭제</button>' : ''}`);
+  $('#edate').addEventListener('change', e => { es.date = e.target.value || today(); updEntry(); });
+  $('#ememo').addEventListener('input', e => { es.memo = e.target.value; });
+  updEntry();
+}
+function setType(t){ es.type = t; updEntry(); }
+function kp(k){
+  if (k === '⌫') es.amt = es.amt.slice(0, -1);
+  else if (es.amt.length < 9) es.amt = (es.amt + k).replace(/^0+/, '');
+  updEntry();
+}
+function addAmt(n){ es.amt = String(Math.min(999999999, (Number(es.amt) || 0) + n)); updEntry(); }
+function applyEntry(list){
+  const amount = Number(es.amt) || 0, now = new Date().toISOString();
+  if (es.mode === 'edit') {
+    const e = list.find(x => x.id === es.id);
+    if (e) Object.assign(e, {type:es.type, amount, date:es.date, memo:es.memo.trim(), updatedAt:now});
+  } else list.push({id:es.id, customerId:es.cid, date:es.date, type:es.type, amount, memo:es.memo.trim(), seq:Date.now(), balanceAfter:0, updatedAt:now});
+  return list;
+}
+function updEntry(){
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.id === 't-' + es.type));
+  const amount = Number(es.amt) || 0;
+  $('#amt').textContent = won(amount) + '원';
+  $('#amt').className = 'amount ' + (es.type === 'use' ? 'minus' : es.type === 'charge' ? 'plus' : '');
+  const cur = calc(entriesOf(es.cid)).balance, r = dry(es.cid, applyEntry);
+  $('#prev').innerHTML = `현재 잔액 ${won(cur)}원 → 저장 후 <b>${won(r.balance)}원</b>`;
+  let err = '', ok = amount > 0;
+  if (amount > 0 && r.min < 0) {
+    ok = false;
+    err = `잔액이 부족해요 (부족 ${won(-r.min)}원). 외상은 허용되지 않아요.` +
+      (es.type === 'use' && es.mode === 'new' ? `<br><button onclick="es.type='charge';es.amt='';updEntry()">충전 먼저 하기</button>` : '');
+  }
+  $('#err').innerHTML = err;
+  $('#esave').disabled = !ok;
+}
+function saveEntry(){
+  const amount = Number(es.amt) || 0;
+  if (amount <= 0) return;
+  const res = tryApply(es.cid, applyEntry);
+  if (!res.ok) { updEntry(); return; }
+  const {mode, id, cid, type} = es;
+  closeSheet();
+  if (mode === 'new') toast(`${TYPE[type]} ${won(amount)}원 · 잔액 ${won(res.balance)}원`, '되돌리기', () => undoEntry(cid, id), 5000);
+  else toast('기록을 수정했어요');
+}
+function undoEntry(cid, id){
+  const r = tryApply(cid, l => l.filter(e => e.id !== id));
+  if (!r.ok) toast('되돌리면 잔액이 마이너스가 되어 되돌릴 수 없어요');
+  else toast('되돌렸어요');
+  render();
+}
+function askDeleteEntry(){
+  const e = db.entries.find(x => x.id === es.id), cid = es.cid;
+  confirmSheet('기록 삭제', `${ymd(e.date)} ${TYPE[e.type]} ${won(e.amount)}원 기록을 삭제할까요?`, '삭제', true, () => {
+    const r = tryApply(cid, l => l.filter(x => x.id !== e.id));
+    closeSheet();
+    toast(r.ok ? '기록을 삭제했어요' : '삭제하면 잔액이 마이너스가 되어 삭제할 수 없어요');
+  });
+}
+
+/* ---------- 손님 등록 / 수정 ---------- */
+function openCustomerForm(cid){
+  const c = cid ? getC(cid) : {name:'', phone:'', bookNo:'', memo:''};
+  openSheet(`<div class="sheet-h"><b>${cid ? '손님 정보 수정' : '새 손님'}</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <label class="fld">이름 *<input id="cname" value="${esc(c.name)}" autocomplete="off"></label>
+    <label class="fld">전화번호<input id="cphone" type="tel" inputmode="tel" value="${esc(c.phone)}" placeholder="010-0000-0000" autocomplete="off"></label>
+    <label class="fld">장부 번호 (종이 장부의 동그라미 번호)<input id="cbook" inputmode="numeric" value="${esc(c.bookNo)}" autocomplete="off"></label>
+    <label class="fld">메모<input id="cmemo" value="${esc(c.memo)}" autocomplete="off"></label>
+    ${cid ? '' : `<label class="fld">이월 잔액 (종이 장부의 마지막 잔액)<input id="ccarry" inputmode="numeric" placeholder="0" autocomplete="off"></label>`}
+    <div class="err" id="cerr"></div>
+    <button class="btn brand full" onclick="saveCustomer('${cid || ''}')">저장</button>
+    ${cid ? `<button class="btn ghost-red full" onclick="askDeleteCustomer('${cid}')">손님 삭제</button>` : ''}`);
+  const carry = $('#ccarry'); if (carry) carry.addEventListener('input', () => { carry.value = fmtNum(carry.value); });
+  if (!cid) setTimeout(() => $('#cname') && $('#cname').focus(), 80);
+}
+function saveCustomer(cid){
+  const name = $('#cname').value.trim();
+  if (!name) { $('#cerr').textContent = '이름을 입력해 주세요.'; return; }
+  const data = {name, phone:$('#cphone').value.trim(), bookNo:$('#cbook').value.replace(/\D/g, ''), memo:$('#cmemo').value.trim()};
+  if (cid) { Object.assign(getC(cid), data); save(); closeSheet(); toast('손님 정보를 수정했어요'); return; }
+  const id = uid();
+  db.customers.push({id, ...data, createdAt:new Date().toISOString()});
+  const carry = numOf($('#ccarry').value);
+  if (carry > 0) db.entries.push({id:uid(), customerId:id, date:today(), type:'carry', amount:carry, memo:'종이 장부 이월', seq:Date.now(), balanceAfter:carry, updatedAt:''});
+  save();
+  pending = () => go('detail', id);
+  closeSheet();
+  toast(`${name} 님을 등록했어요`);
+}
+function askDeleteCustomer(cid){
+  const c = getC(cid), n = entriesOf(cid).length;
+  confirmSheet('손님 삭제', `${c.name} 님과 기록 ${n}건을 모두 삭제할까요? 되돌릴 수 없어요.`, '삭제', true, () => {
+    db.customers = db.customers.filter(x => x.id !== cid);
+    db.entries = db.entries.filter(e => e.customerId !== cid);
+    save();
+    pending = () => { state.view = 'list'; if (navOK) history.back(); else render(); };
+    closeSheet();
+    toast('손님을 삭제했어요');
+  });
+}
+
+/* ---------- 공유 (카카오톡) ---------- */
+function buildMsg(cid){
+  const c = getC(cid), r = calc(entriesOf(cid)), last = r.sorted.at(-1);
+  const map = {'가게':db.shop.name, '이름':c.name, '날짜':last ? md(last.date) : md(today()),
+    '구분':last ? TYPE[last.type] : '', '금액':last ? won(last.amount) : '0', '잔액':won(r.balance)};
+  return (db.shop.template || DEFAULT_TPL).replace(/\{(가게|이름|날짜|구분|금액|잔액)\}/g, (m, k) => map[k]);
+}
+function drawLogo(g, cx, cy, R){
+  g.save();
+  g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
+  g.lineWidth = R * 0.09; g.strokeStyle = '#2f8f4e'; g.beginPath(); g.arc(cx, cy, R * 0.955, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = R * 0.07; g.strokeStyle = '#d23b3b'; g.beginPath(); g.arc(cx, cy, R * 0.8, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = '#5b7682'; g.font = `700 ${Math.round(R * 0.5)}px Arial, Helvetica, sans-serif`;
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CIBO', cx, cy + R * 0.03);
+  g.restore();
+}
+const PERIODS = {recent:'최근 10건', month:'이번 달', all:'전체'};
+function buildImage(cid, period){
+  const c = getC(cid), r = calc(entriesOf(cid)), ym = today().slice(0, 7);
+  let rows = [...r.sorted].reverse();
+  if (period === 'recent') rows = rows.slice(0, 10);
+  else if (period === 'month') rows = rows.filter(e => e.date.slice(0, 7) === ym);
+  let cut = false; if (rows.length > 150) { rows = rows.slice(0, 150); cut = true; }
+  const W = 1080, rowH = 84, top = 560, H = Math.max(1350, top + 50 + Math.max(rows.length, 1) * rowH + 180);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), F = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#5b7682'; g.fillRect(0, 0, W, 14);
+  drawLogo(g, 160, 170, 96);
+  g.textBaseline = 'middle'; g.textAlign = 'left';
+  g.fillStyle = '#2f3d44'; g.font = `700 60px ${F}`; g.fillText(db.shop.name, 290, 145);
+  g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('선결재 장부 내역서', 292, 205);
+  g.fillStyle = '#2f3d44'; g.font = `700 54px ${F}`; g.fillText(c.name + ' 님', 70, 340);
+  g.fillStyle = '#f2f6f7'; roundRect(g, 60, 395, W - 120, 120, 24); g.fill();
+  g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('현재 잔액', 100, 455);
+  g.fillStyle = '#5b7682'; g.font = `800 78px ${F}`; g.textAlign = 'right'; g.fillText(won(r.balance) + '원', W - 100, 455);
+  const X = {d:70, t:360, a:770, b:1010};
+  g.font = `30px ${F}`; g.fillStyle = '#7d8b91';
+  g.textAlign = 'left'; g.fillText('날짜', X.d, top + 10); g.fillText('구분', X.t, top + 10);
+  g.textAlign = 'right'; g.fillText('금액', X.a, top + 10); g.fillText('잔액', X.b, top + 10);
+  g.fillStyle = '#d5dde0'; g.fillRect(60, top + 40, W - 120, 3);
+  rows.forEach((e, i) => {
+    const y = top + 50 + i * rowH + rowH / 2;
+    if (i % 2) { g.fillStyle = '#f7f9f9'; g.fillRect(60, y - rowH / 2, W - 120, rowH); }
+    g.font = `36px ${F}`; g.textAlign = 'left'; g.fillStyle = '#2f3d44'; g.fillText(ymd(e.date), X.d, y);
+    g.fillStyle = e.type === 'use' ? '#d23b3b' : e.type === 'charge' ? '#2f8f4e' : '#5b7682';
+    g.font = `700 36px ${F}`; g.fillText(TYPE[e.type], X.t, y);
+    g.textAlign = 'right'; g.fillText((e.type === 'use' ? '-' : '+') + won(e.amount), X.a, y);
+    g.fillStyle = '#2f3d44'; g.font = `36px ${F}`; g.fillText(won(e.balanceAfter), X.b, y);
+  });
+  if (!rows.length) { g.textAlign = 'center'; g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('해당 기간의 기록이 없습니다', W / 2, top + 50 + rowH / 2); }
+  g.fillStyle = '#e3e8ea'; g.fillRect(60, H - 140, W - 120, 2);
+  g.textAlign = 'center'; g.fillStyle = '#7d8b91'; g.font = `30px ${F}`;
+  g.fillText(`발행 ${ymd(today())} · ${PERIODS[period]}${cut ? ' (최근 150건)' : ''}`, W / 2, H - 90);
+  g.fillText('항상 이용해 주셔서 감사합니다.', W / 2, H - 45);
+  return new Promise(res => cv.toBlob(b => res(new File([b], `${db.shop.name}_${c.name}_내역서_${today()}.png`, {type:'image/png'})), 'image/png'));
+}
+function roundRect(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+let sh = null;
+function openShare(cid){
+  sh = {cid, period:'recent', file:null, url:null};
+  openSheet(`<div class="sheet-h"><b>카톡으로 보내기 · ${esc(getC(cid).name)}</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <label class="fld">보낼 문구 (고쳐서 보낼 수 있어요)<textarea id="smsg" rows="5">${esc(buildMsg(cid))}</textarea></label>
+    <div class="muted small" style="margin:0 2px 6px">내역서 기간</div>
+    <div class="seg">${Object.entries(PERIODS).map(([k, v]) => `<button id="p-${k}" class="p" onclick="setPeriod('${k}')">${v}</button>`).join('')}</div>
+    <div class="imgwrap"><img id="simg" alt="내역서 미리보기"></div>
+    <button class="btn sms full" onclick="sendSMS(sh.cid, $('#smsg').value)">📱 이 문구를 문자로 바로 보내기</button>
+    <button class="btn kakao full" onclick="shareBoth()">💬 문구 + 내역서 카톡으로 보내기</button>
+    <div class="grid2"><button class="btn ghost" onclick="shareText()">문구만 보내기</button><button class="btn ghost" onclick="shareImage()">내역서만 보내기</button></div>
+    <div class="grid2"><button class="btn ghost" onclick="copyText($('#smsg').value).then(()=>toast('문구를 복사했어요'))">문구 복사</button><button class="btn ghost" onclick="download(sh.file)">이미지 저장</button></div>
+    <p class="muted small">공유창에서 <b>카카오톡</b>을 고른 뒤 받을 사람을 선택하세요. 카톡이 사진만 보내고 문구를 빼면 <b>문구만 보내기</b>를 한 번 더 눌러 주세요. 전화번호는 내역서에 나오지 않아요.</p>`);
+  setPeriod('recent');
+}
+async function setPeriod(p){
+  sh.period = p;
+  document.querySelectorAll('.seg .p').forEach(b => b.classList.toggle('on', b.id === 'p-' + p));
+  const file = await buildImage(sh.cid, p);
+  if (!sh || sh.period !== p) return;
+  if (sh.url) URL.revokeObjectURL(sh.url);
+  sh.file = file; sh.url = URL.createObjectURL(file);
+  const img = $('#simg'); if (img) img.src = sh.url;
+}
+async function doShare({text, file, title}){
+  if (navigator.share) {
+    const data = {};
+    if (title) data.title = title;
+    if (text) data.text = text;
+    let fileOK = false;
+    if (file && navigator.canShare && navigator.canShare({files:[file]})) { data.files = [file]; fileOK = true; }
+    if (!file || fileOK) {
+      try { await navigator.share(data); return 'shared'; }
+      catch(e) { if (e.name === 'AbortError') return 'abort'; }
+    }
+  }
+  if (text) await copyText(text);
+  if (file) download(file);
+  toast(text && file ? '바로 공유가 안 돼요. 문구는 복사, 파일은 저장했어요.' : text ? '바로 공유가 안 돼요. 문구를 복사했으니 카톡에 붙여넣어 주세요.' : '바로 공유가 안 돼요. 파일을 저장했으니 카톡에서 첨부해 주세요.', null, null, 4500);
+  return 'fallback';
+}
+/* 손님 전화번호로 문자앱을 바로 열기 (수신자·내용 자동 입력, 전송만 누르면 됨) */
+function sendSMS(cid, text){
+  const c = getC(cid), num = (c.phone || '').replace(/[^\d+]/g, '');
+  if (!num) {
+    toast('전화번호가 없어요. 손님 정보에 번호를 넣어 주세요', '번호 넣기', () => openCustomerForm(cid), 5000);
+    return;
+  }
+  const body = encodeURIComponent(text ?? buildMsg(cid));
+  const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  location.href = `sms:${num}${ios ? '&' : '?'}body=${body}`;
+}
+const shareBoth = () => doShare({text:$('#smsg').value, file:sh.file});
+const shareText = () => doShare({text:$('#smsg').value});
+const shareImage = () => doShare({file:sh.file});
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return; } catch(e) {}
+  const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch(e) {} ta.remove();
+}
+function download(file){
+  if (!file) return;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---------- 설정 · 백업 ---------- */
+function renderSettings(){
+  const lb = db.lastBackup ? ymd(db.lastBackup.slice(0, 10)) : '없음';
+  app.innerHTML = `
+  <header class="top"><button class="iconbtn" onclick="goBack()" aria-label="뒤로">‹</button><h1>설정 · 백업</h1></header>
+  <main>
+    <div class="card"><h2>백업 · 장부 보내기</h2>
+      <p class="small" style="margin:0 0 12px">마지막 백업: <b>${lb}</b></p>
+      <button class="btn kakao full" onclick="exportBackup()">💬 전체 장부 보내기 (백업 파일)</button>
+      <button class="btn ghost full" onclick="exportCSV()">엑셀용 CSV 내보내기</button>
+      <button class="btn ghost full" onclick="$('#imp').click()">백업 파일 불러오기</button>
+      <p class="muted small" style="margin:4px 2px 0">장부는 이 휴대폰 브라우저 안에만 저장돼요. 브라우저 기록·데이터를 지우면 장부도 지워지니, 일주일에 한 번 카카오톡 <b>'나와의 채팅'</b>으로 백업 파일을 보내 두세요.</p>
+    </div>
+    <div class="card"><h2>가게 · 알림 문구</h2>
+      <label class="fld">가게 이름<input id="sname" value="${esc(db.shop.name)}"></label>
+      <label class="fld">'잔액 적음' 표시 기준 (원)<input id="slow" inputmode="numeric" value="${won(db.shop.lowAlert)}"></label>
+      <label class="fld">카톡 알림 문구<textarea id="stpl" rows="5">${esc(db.shop.template)}</textarea></label>
+      <p class="muted small" style="margin:-4px 2px 12px">넣을 수 있는 칸: {가게} {이름} {날짜} {구분} {금액} {잔액}</p>
+      <button class="btn brand full" onclick="saveShop()">저장</button>
+      <button class="btn ghost full" onclick="$('#stpl').value=DEFAULT_TPL">기본 문구로 되돌리기</button>
+    </div>
+    <div class="card"><h2>잠금 비밀번호</h2>
+      <p class="small" style="margin:0 0 10px">${db.shop.pin ? '앱을 열 때 비밀번호 4자리를 물어봐요.' : '설정하지 않았어요.'}</p>
+      <label class="fld">새 비밀번호 (숫자 4자리)<input id="spin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <div class="grid2"><button class="btn brand" onclick="setPin()">설정</button><button class="btn ghost" onclick="clearPin()" ${db.shop.pin ? '' : 'disabled'}>해제</button></div>
+    </div>
+    <div class="card"><h2>정보</h2>
+      <p class="small" style="margin:0 0 12px">손님 ${db.customers.length}명 · 기록 ${db.entries.length}건</p>
+      <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
+    </div>
+    <div class="foot">CIBO 선결재 장부 v1.0<br>제작 다온기술 오창현</div>
+  </main>`;
+  $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
+}
+function saveShop(){
+  db.shop.name = $('#sname').value.trim() || 'CIBO';
+  db.shop.lowAlert = numOf($('#slow').value);
+  db.shop.template = $('#stpl').value || DEFAULT_TPL;
+  save(); toast('저장했어요'); render();
+}
+function setPin(){
+  const v = $('#spin').value;
+  if (!/^\d{4}$/.test(v)) { toast('숫자 4자리를 입력해 주세요'); return; }
+  db.shop.pin = v; save(); toast('비밀번호를 설정했어요'); render();
+}
+function clearPin(){ db.shop.pin = ''; save(); toast('비밀번호를 해제했어요'); render(); }
+async function exportBackup(){
+  const data = {...db, shop:{...db.shop, pin:''}, exportedAt:new Date().toISOString()};
+  const file = new File([JSON.stringify(data)], `${db.shop.name}_장부백업_${today()}.txt`, {type:'text/plain'});
+  const r = await doShare({file, title:`${db.shop.name} 장부 백업`});
+  if (r !== 'abort') { db.lastBackup = new Date().toISOString(); save(); render(); if (r === 'shared') toast('백업 파일을 보냈어요'); }
+}
+async function exportCSV(){
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [['손님', '전화번호', '장부번호', '날짜', '구분', '금액', '잔액', '메모'].join(',')];
+  const byName = [...db.customers].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  for (const c of byName) for (const e of calc(entriesOf(c.id)).sorted)
+    lines.push([q(c.name), q(c.phone), q(c.bookNo), e.date, TYPE[e.type], e.type === 'use' ? -e.amount : e.amount, e.balanceAfter, q(e.memo)].join(','));
+  const file = new File(['\uFEFF' + lines.join('\r\n')], `${db.shop.name}_장부_${today()}.csv`, {type:'text/csv'});
+  await doShare({file, title:`${db.shop.name} 장부 CSV`});
+}
+$('#imp').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    let d; try { d = JSON.parse(rd.result); } catch(err) { toast('백업 파일을 읽을 수 없어요'); return; }
+    if (d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결재 장부 백업 파일이 아니에요'); return; }
+    confirmSheet('장부 불러오기', `손님 ${d.customers.length}명, 기록 ${d.entries.length}건을 불러옵니다. 지금 휴대폰에 있는 장부(손님 ${db.customers.length}명)는 덮어써져요.`, '불러오기', true, () => {
+      const pin = db.shop.pin;
+      db = normalize(d); db.shop.pin = pin; recomputeAll(); save();
+      closeSheet(); toast('장부를 불러왔어요');
+    });
+  };
+  rd.readAsText(f);
+});
+function askReset(){
+  confirmSheet('모든 데이터 삭제', '손님과 기록이 모두 지워져요. 먼저 백업했는지 확인해 주세요. 정말 삭제할까요?', '모두 삭제', true, () => {
+    db = emptyDb(); save(); pending = () => go('list'); closeSheet(); toast('모두 삭제했어요');
+  });
+}
+
+/* ---------- 잠금 화면 ---------- */
+function showLock(){
+  let v = '';
+  const el = document.createElement('div'); el.className = 'lock';
+  el.innerHTML = `<span class="logo">${LOGO}</span><div style="font-weight:700">비밀번호 4자리</div><div class="dots" id="dots">${'<i></i>'.repeat(4)}</div>
+    <div class="keypad">${['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k => k ? `<button data-k="${k}">${k}</button>` : '<span></span>').join('')}</div>`;
+  document.body.appendChild(el);
+  const dots = () => el.querySelectorAll('.dots i').forEach((d, i) => d.classList.toggle('f', i < v.length));
+  el.addEventListener('click', e => {
+    const k = e.target.dataset && e.target.dataset.k; if (!k) return;
+    if (k === '⌫') v = v.slice(0, -1); else if (v.length < 4) v += k;
+    dots();
+    if (v.length === 4) {
+      if (v === db.shop.pin) el.remove();
+      else { const d = el.querySelector('.dots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake'); v = ''; setTimeout(dots, 300); }
+    }
+  });
+}
+
+/* ---------- 홈 화면 아이콘 ---------- */
+(function(){
+  try {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 180;
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 180, 180); drawLogo(g, 90, 90, 80);
+    $('#appleicon').href = cv.toDataURL('image/png');
+  } catch(e) {}
+})();
+
+/* ---------- 시작 ---------- */
+recomputeAll();
+render();
+if (db.shop.pin) showLock();
+</script>
+</body>
+</html>
