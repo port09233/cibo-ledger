@@ -124,7 +124,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.1 (오프라인 지원)  ·  제작: 다온기술 오창현
+   CIBO 선결재 장부 v1.2 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -283,7 +283,6 @@ function renderList(){
         <option value="high">잔액 많은순</option><option value="low">잔액 적은순</option>
       </select></div>
     <div id="results"></div>
-    <div class="foot">CIBO 선결재 장부 · 제작 다온기술 오창현</div>
   </main>
   <button class="fab" onclick="openCustomerForm()">＋ 손님 추가</button>`;
   $('#sort').value = state.sort;
@@ -619,7 +618,7 @@ function renderSettings(){
       <p class="small" style="margin:0 0 12px">손님 ${db.customers.length}명 · 기록 ${db.entries.length}건</p>
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
-    <div class="foot">CIBO 선결재 장부 v1.1 (오프라인 지원)<br>제작 다온기술 오창현</div>
+    <div class="foot">CIBO 선결재 장부 v1.2 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
