@@ -122,12 +122,12 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <div id="app"></div>
 <div class="sheet-bg" id="sheetbg"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
-<input type="file" id="imp" accept=".txt,.json,text/plain,application/json" hidden>
+<input type="file" id="imp" accept=".pdf,.txt,.json,application/pdf,text/plain,application/json" hidden>
 
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.5 (오프라인 지원)
+   CIBO 선결재 장부 v1.6 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -624,8 +624,8 @@ function renderSettings(){
     ${inAppBanner()}
     <div class="card"><h2>백업 · 장부 보내기</h2>
       <p class="small" style="margin:0 0 12px">마지막 백업: <b>${lb}</b></p>
-      <button class="btn kakao full" onclick="exportBackup()">💬 전체 장부 보내기 (백업 파일)</button>
-      <button class="btn ghost full" onclick="exportCSV()">엑셀용 CSV 내보내기</button>
+      <button class="btn kakao full" onclick="exportBackup()">💬 전체 장부 보내기 (백업 PDF)</button>
+      <button class="btn ghost full" onclick="exportCSV()">엑셀용 CSV 저장 (다운로드 폴더)</button>
       <button class="btn ghost full" onclick="$('#imp').click()">백업 파일 불러오기</button>
       <div class="grid2"><button class="btn ghost" onclick="copyBackup()">백업 내용 복사</button><button class="btn ghost" onclick="openPasteImport()">붙여넣어 불러오기</button></div>
       <p class="muted small" style="margin:4px 2px 0">장부는 이 휴대폰 브라우저 안에만 저장돼요. 브라우저 기록·데이터를 지우면 장부도 지워지니, 일주일에 한 번 카카오톡 <b>'나와의 채팅'</b>으로 백업 파일을 보내 두세요. 파일 보내기가 안 되면 <b>백업 내용 복사</b> 후 '나와의 채팅'에 붙여넣어 두면 돼요.</p>
@@ -648,7 +648,7 @@ function renderSettings(){
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
     ${SHOP_INFO}
-    <div class="foot">CIBO 선결재 장부 v1.5 (오프라인 지원)</div>
+    <div class="foot">CIBO 선결재 장부 v1.6 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
@@ -666,9 +666,62 @@ function setPin(){
 function clearPin(){ db.shop.pin = ''; save(); toast('비밀번호를 해제했어요'); render(); }
 const backupText = () => JSON.stringify({...db, shop:{...db.shop, pin:''}, exportedAt:new Date().toISOString()});
 function markBackup(){ db.lastBackup = new Date().toISOString(); save(); }
+/* 백업 파일 = PDF
+   카카오톡은 글자 파일(.txt .csv)을 공유받으면 내용을 버리고 빈 메시지만 보내므로,
+   첫 장에 백업 안내 그림이 있는 PDF를 만들고 장부 데이터는 PDF 끝에 숨겨 넣는다. */
+const PDF_BEGIN = '%CIBO-BACKUP-BEGIN', PDF_END = '%CIBO-BACKUP-END';
+function backupCover(){
+  const W = 1190, H = 1684, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), F = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+  const idx = buildIndex(); let total = 0; for (const v of idx.values()) total += v.balance;
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#5b7682'; g.fillRect(0, 0, W, 18);
+  drawLogo(g, W / 2, 330, 170);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#2f3d44'; g.font = `800 76px ${F}`; g.fillText(`${db.shop.name} 선결재 장부 백업`, W / 2, 620);
+  g.fillStyle = '#7d8b91'; g.font = `44px ${F}`; g.fillText(`백업 날짜 ${ymd(today())}`, W / 2, 710);
+  g.fillStyle = '#f2f6f7'; roundRect(g, 140, 790, W - 280, 300, 32); g.fill();
+  g.fillStyle = '#2f3d44'; g.font = `600 52px ${F}`;
+  g.fillText(`손님 ${db.customers.length}명 · 기록 ${db.entries.length}건`, W / 2, 880);
+  g.fillStyle = '#5b7682'; g.font = `800 64px ${F}`; g.fillText(`전체 잔액 ${won(total)}원`, W / 2, 990);
+  g.fillStyle = '#7d8b91'; g.font = `40px ${F}`;
+  ['이 PDF는 장부 앱에서만 복원할 수 있는 백업 파일입니다.', '복원: 앱 설정 → 백업 파일 불러오기 → 이 파일 선택', '지우지 말고 카카오톡 나와의 채팅에 보관해 두세요.']
+    .forEach((t, i) => g.fillText(t, W / 2, 1220 + i * 70));
+  return {W, H, jpg: cv.toDataURL('image/jpeg', 0.82)};
+}
+function b64ToBytes(b64){ const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+function bytesToB64(u){ let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+function buildBackupPdf(){
+  const {W, H, jpg} = backupCover(), img = b64ToBytes(jpg.split(',')[1]);
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const put = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; put(`${n} 0 obj\n${body}\nendobj\n`); };
+  put('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+  offs[4] = len;
+  put(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`);
+  put(img); put('\nendstream\nendobj\n');
+  const cs = 'q 595 0 0 842 0 0 cm /Im0 Do Q';
+  obj(5, `<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+  const xref = len;
+  let x = 'xref\n0 6\n0000000000 65535 f \n';
+  for (let n = 1; n <= 5; n++) x += String(offs[n]).padStart(10, '0') + ' 00000 n \n';
+  put(x + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  const data = bytesToB64(enc.encode(backupText())).match(/.{1,76}/g).map(l => '%' + l).join('\n');
+  put(`${PDF_BEGIN}\n${data}\n${PDF_END}\n`);
+  return new File(parts, `${db.shop.name}_장부백업_${today()}.pdf`, {type:'application/pdf'});
+}
+function readBackupPayload(text){
+  const i = text.indexOf(PDF_BEGIN), j = text.indexOf(PDF_END);
+  if (i < 0 || j < i) return text;
+  const b64 = text.slice(i + PDF_BEGIN.length, j).replace(/[%\s]/g, '');
+  return new TextDecoder().decode(b64ToBytes(b64));
+}
 async function exportBackup(){
-  const file = new File([backupText()], `${db.shop.name}_장부백업_${today()}.txt`, {type:'text/plain'});
   if (IN_APP) { openBackupHelp(); return; }
+  const file = buildBackupPdf();
   const r = await doShare({file});
   if (r === 'shared' || r === 'fallback') { markBackup(); render(); if (r === 'shared') toast('백업 파일을 보냈어요'); }
 }
@@ -692,7 +745,7 @@ function openPasteImport(){
     <button class="btn brand full" onclick="importText($('#pasteBox').value)">불러오기</button>`);
 }
 function importText(text){
-  let d; try { d = JSON.parse(String(text).trim()); } catch(err) { toast('백업 내용을 읽을 수 없어요. 처음부터 끝까지 전부 붙여넣었는지 확인해 주세요', null, null, 5000); return; }
+  let d; try { d = JSON.parse(readBackupPayload(String(text)).trim()); } catch(err) { toast('백업 내용을 읽을 수 없어요. 처음부터 끝까지 전부 붙여넣었는지 확인해 주세요', null, null, 5000); return; }
   if (!d || d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결재 장부 백업이 아니에요'); return; }
   confirmSheet('장부 불러오기', `손님 ${d.customers.length}명, 기록 ${d.entries.length}건을 불러옵니다. 지금 휴대폰에 있는 장부(손님 ${db.customers.length}명)는 덮어써져요.`, '불러오기', true, () => {
     const pin = db.shop.pin;
@@ -707,7 +760,9 @@ async function exportCSV(){
   for (const c of byName) for (const e of calc(entriesOf(c.id)).sorted)
     lines.push([q(c.name), q(c.phone), q(c.bookNo), e.date, TYPE[e.type], e.type === 'use' ? -e.amount : e.amount, e.balanceAfter, q(e.memo)].join(','));
   const file = new File(['\uFEFF' + lines.join('\r\n')], `${db.shop.name}_장부_${today()}.csv`, {type:'text/csv'});
-  await doShare({file});
+  if (IN_APP) { toast('카톡 안에서는 파일을 저장할 수 없어요.', '다른 브라우저로', openExternal, 6000); return; }
+  download(file);
+  toast('휴대폰 "다운로드" 폴더에 저장했어요. 카톡에서 ＋ → 파일로 보낼 수 있어요', null, null, 6000);
 }
 $('#imp').addEventListener('change', e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
