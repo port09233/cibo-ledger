@@ -8,7 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>CIBO 선결재 장부</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23fff' stroke='%232f8f4e' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23d23b3b' stroke-width='4'/%3E%3Ctext x='50' y='59' text-anchor='middle' font-size='25' font-weight='700' fill='%235b7682' font-family='Arial'%3ECIBO%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" id="appleicon">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="CIBO 장부">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{--ink:#2f3d44;--brand:#5b7682;--muted:#7d8b91;--line:#e3e8ea;--bg:#f5f7f7;--green:#2f8f4e;--red:#d23b3b;--warn:#b26a00;--kakao:#FEE500}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -121,7 +124,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.0  ·  제작: 다온기술 오창현
+   CIBO 선결재 장부 v1.1 (오프라인 지원)  ·  제작: 다온기술 오창현
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -616,7 +619,7 @@ function renderSettings(){
       <p class="small" style="margin:0 0 12px">손님 ${db.customers.length}명 · 기록 ${db.entries.length}건</p>
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
-    <div class="foot">CIBO 선결재 장부 v1.0<br>제작 다온기술 오창현</div>
+    <div class="foot">CIBO 선결재 장부 v1.1 (오프라인 지원)<br>제작 다온기술 오창현</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
@@ -686,14 +689,11 @@ function showLock(){
   });
 }
 
-/* ---------- 홈 화면 아이콘 ---------- */
-(function(){
-  try {
-    const cv = document.createElement('canvas'); cv.width = cv.height = 180;
-    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 180, 180); drawLogo(g, 90, 90, 80);
-    $('#appleicon').href = cv.toDataURL('image/png');
-  } catch(e) {}
-})();
+/* ---------- 오프라인 지원 · 저장공간 보호 ---------- */
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
 
 /* ---------- 시작 ---------- */
 recomputeAll();
