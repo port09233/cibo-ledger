@@ -37,6 +37,28 @@ h2{font-size:18px;margin:22px 4px 10px}
 .sum-top{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
 .sum-big{font-size:28px;font-weight:800}
 .sum-sub{display:flex;gap:14px;margin-top:8px;font-size:15px}
+.sum-sub .lbl{min-width:58px}
+.sum-sub.today{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-weight:700}
+.calbtn{flex:none;height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:16px;font-weight:700;color:var(--brand)}
+.calbtn:active{background:#eef3f4}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}
+.cal-nav b{font-size:19px}
+.cal-nav button{width:48px;height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:22px;color:var(--brand)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
+.cal-w{text-align:center;font-size:13px;color:var(--muted);padding:2px 0}
+.cal-w.sun,.cal-d.sun .n{color:var(--red)} .cal-w.sat,.cal-d.sat .n{color:#3b6fb6}
+.cal-d{height:54px;border:1px solid transparent;border-radius:10px;background:#f7f9f9;padding:4px 0 0;display:flex;flex-direction:column;align-items:center;gap:3px}
+.cal-d .n{font-size:16px;font-weight:600}
+.cal-d .dots{display:flex;gap:4px;height:10px}
+.cal-d .dots i{width:9px;height:9px;border-radius:50%}
+.cal-d.sel .dots i{box-shadow:0 0 0 1.5px #fff}
+.cal-d .dots i.c{background:var(--green)} .cal-d .dots i.u{background:var(--red)}
+.cal-d.today{border-color:var(--brand)}
+.cal-d.sel{background:var(--brand)} .cal-d.sel .n{color:#fff}
+.cal-d.empty{background:none}
+.cal-day{background:#f2f6f7;border-radius:12px;padding:10px 14px;margin-bottom:10px}
+.cal-day b{font-size:17px}
+.hist .who{font-weight:700;min-width:64px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plus{color:var(--green)} .minus{color:var(--red)}
 .search{width:100%;height:54px;font-size:18px;padding:0 16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;outline:none}
 .search:focus{border-color:var(--brand)}
@@ -127,7 +149,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.6 (오프라인 지원)
+   CIBO 선결재 장부 v1.7 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -279,9 +301,13 @@ function backupNeeded(){
 
 function renderList(){
   const idx = buildIndex(), ym = today().slice(0, 7);
-  let total = 0, chg = 0, use = 0;
+  const td = today();
+  let total = 0, chg = 0, use = 0, tChg = 0, tUse = 0;
   for (const v of idx.values()) total += v.balance;
-  for (const e of db.entries) if (e.date.slice(0, 7) === ym) { if (e.type === 'charge') chg += e.amount; else if (e.type === 'use') use += e.amount; }
+  for (const e of db.entries) {
+    if (e.date.slice(0, 7) === ym) { if (e.type === 'charge') chg += e.amount; else if (e.type === 'use') use += e.amount; }
+    if (e.date === td) { if (e.type === 'charge') tChg += e.amount; else if (e.type === 'use') tUse += e.amount; }
+  }
   app.innerHTML = `
   <header class="top"><span class="logo">${LOGO}</span><h1>${esc(db.shop.name)} 선결재 장부</h1>
     <button class="iconbtn" onclick="go('settings')" aria-label="설정·백업">⚙</button></header>
@@ -289,8 +315,10 @@ function renderList(){
     ${inAppBanner()}
     ${backupNeeded() ? `<div class="banner"><span>${db.lastBackup ? '마지막 백업 후 7일이 지났어요.' : '아직 백업한 적이 없어요.'}</span><button class="btn kakao" onclick="exportBackup()">지금 백업</button></div>` : ''}
     <div class="card">
-      <div class="sum-top"><div><div class="muted small">전체 잔액 (손님 ${db.customers.length}명)</div><div class="sum-big">${won(total)}원</div></div></div>
-      <div class="sum-sub"><span class="muted">${Number(ym.slice(5))}월</span><span class="plus">충전 +${won(chg)}</span><span class="minus">사용 −${won(use)}</span></div>
+      <div class="sum-top"><div><div class="muted small">전체 잔액 (손님 ${db.customers.length}명)</div><div class="sum-big">${won(total)}원</div></div>
+        <button class="calbtn" onclick="openCalendar()">📅 달력</button></div>
+      <div class="sum-sub today"><span class="lbl">오늘 ${md(td)}</span><span class="plus">충전 +${won(tChg)}</span><span class="minus">사용 −${won(tUse)}</span></div>
+      <div class="sum-sub"><span class="lbl muted">${Number(ym.slice(5))}월</span><span class="plus">충전 +${won(chg)}</span><span class="minus">사용 −${won(use)}</span></div>
     </div>
     <input id="q" class="search" type="search" placeholder="🔍 이름 · 전화 뒷자리 · 장부번호" value="${esc(state.q)}" autocomplete="off">
     <div class="row between listbar"><span class="muted small" id="cnt"></span>
@@ -360,6 +388,51 @@ function renderDetail(){
     <h2>기록 ${r.sorted.length}건</h2>
     ${rows || '<div class="empty">아직 기록이 없어요.</div>'}
   </main>`;
+}
+
+/* ---------- 달력 (날짜별 내역) ---------- */
+let cal = null;
+function openCalendar(){ cal = {ym:today().slice(0, 7), sel:today()}; openSheet(calHtml()); }
+function calMove(n){
+  let [y, m] = cal.ym.split('-').map(Number); m += n;
+  if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; }
+  cal.ym = `${y}-${pad(m)}`;
+  cal.sel = cal.ym === today().slice(0, 7) ? today() : `${cal.ym}-01`;
+  $('#sheet').innerHTML = calHtml();
+}
+function calPick(d){ cal.sel = d; $('#sheet').innerHTML = calHtml(); }
+function calOpenCustomer(cid){ pending = () => go('detail', cid); closeSheet(); }
+function calHtml(){
+  const [y, m] = cal.ym.split('-').map(Number), td = today();
+  const first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
+  const byDay = {}; let mc = 0, mu = 0;
+  for (const e of db.entries) {
+    if (e.date.slice(0, 7) !== cal.ym) continue;
+    const v = byDay[e.date] || (byDay[e.date] = {c:0, u:0});
+    if (e.type === 'use') { v.u += e.amount; mu += e.amount; } else if (e.type === 'charge') { v.c += e.amount; mc += e.amount; }
+  }
+  let cells = ['일','월','화','수','목','금','토'].map((w, i) => `<div class="cal-w ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${w}</div>`).join('');
+  for (let i = 0; i < first; i++) cells += '<div class="cal-d empty"></div>';
+  for (let d = 1; d <= days; d++) {
+    const ds = `${cal.ym}-${pad(d)}`, v = byDay[ds], wd = (first + d - 1) % 7;
+    const has = db.entries.some(e => e.date === ds);
+    cells += `<button class="cal-d ${wd === 0 ? 'sun' : wd === 6 ? 'sat' : ''} ${ds === td ? 'today' : ''} ${ds === cal.sel ? 'sel' : ''}" onclick="calPick('${ds}')">
+      <span class="n">${d}</span><span class="dots">${v && v.c ? '<i class="c"></i>' : ''}${v && v.u ? '<i class="u"></i>' : ''}${has && !(v && (v.c || v.u)) ? '<i class="c" style="background:var(--brand)"></i>' : ''}</span></button>`;
+  }
+  const list = db.entries.filter(e => e.date === cal.sel).sort((a, b) => a.seq - b.seq);
+  let dc = 0, du = 0; for (const e of list) { if (e.type === 'use') du += e.amount; else if (e.type === 'charge') dc += e.amount; }
+  const rows = list.map(e => { const c = getC(e.customerId); return `<button class="hist" onclick="calOpenCustomer('${e.customerId}')">
+      <span class="who">${esc(c ? c.name : '?')}</span><span class="chip ${e.type}">${TYPE[e.type]}</span><span class="memo">${esc(e.memo)}</span>
+      <span class="r"><div class="amt ${e.type === 'use' ? 'minus' : e.type === 'charge' ? 'plus' : ''}">${e.type === 'use' ? '−' : '+'}${won(e.amount)}</div><div class="after">잔액 ${won(e.balanceAfter)}</div></span></button>`; }).join('');
+  const wk = ['일','월','화','수','목','금','토'][new Date(cal.sel + 'T00:00:00').getDay()];
+  return `<div class="sheet-h"><b>날짜별 내역</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
+    <div class="cal-nav"><button onclick="calMove(-1)" aria-label="이전 달">‹</button><b>${y}년 ${m}월</b><button onclick="calMove(1)" aria-label="다음 달">›</button></div>
+    <div class="sum-sub" style="margin:0 2px 10px"><span class="muted">${m}월 합계</span><span class="plus">충전 +${won(mc)}</span><span class="minus">사용 −${won(mu)}</span></div>
+    <div class="cal-grid">${cells}</div>
+    <div class="muted small" style="margin:-4px 2px 10px"><span style="color:var(--green)">●</span> 충전 &nbsp;<span style="color:var(--red)">●</span> 사용 있는 날</div>
+    <div class="cal-day"><b>${md(cal.sel)} (${wk})${cal.sel === td ? ' 오늘' : ''}</b>
+      <div class="sum-sub" style="margin-top:4px"><span class="plus">충전 +${won(dc)}</span><span class="minus">사용 −${won(du)}</span><span class="muted">${list.length}건</span></div></div>
+    ${rows || '<div class="empty" style="padding:20px">이 날은 기록이 없어요.</div>'}`;
 }
 
 /* ---------- 충전 / 사용 입력 ---------- */
@@ -648,7 +721,7 @@ function renderSettings(){
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
     ${SHOP_INFO}
-    <div class="foot">CIBO 선결재 장부 v1.6 (오프라인 지원)</div>
+    <div class="foot">CIBO 선결재 장부 v1.7 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
