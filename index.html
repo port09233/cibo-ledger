@@ -149,7 +149,7 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결제 장부 v1.8 (오프라인 지원)
+   CIBO 선결제 장부 v1.9 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
@@ -513,12 +513,21 @@ function askDeleteEntry(){
 }
 
 /* ---------- 손님 등록 / 수정 ---------- */
+/* 추천 장부 번호 = 등록된 손님 장부 번호 중 가장 큰 번호 + 1 */
+function nextBookNo(){
+  let max = 0;
+  for (const c of db.customers) { const n = parseInt(String(c.bookNo).replace(/\D/g, ''), 10); if (n > max) max = n; }
+  return max + 1;
+}
+function bookNoTaken(no, exceptId){ return no !== '' && db.customers.some(c => c.id !== exceptId && String(c.bookNo) === String(no)); }
 function openCustomerForm(cid){
-  const c = cid ? getC(cid) : {name:'', phone:'', bookNo:'', memo:''};
+  const rec = nextBookNo();
+  const c = cid ? getC(cid) : {name:'', phone:'', bookNo:String(rec), memo:''};
   openSheet(`<div class="sheet-h"><b>${cid ? '손님 정보 수정' : '새 손님'}</b><button class="iconbtn" onclick="closeSheet()" aria-label="닫기">✕</button></div>
     <label class="fld">이름 *<input id="cname" value="${esc(c.name)}" autocomplete="off"></label>
     <label class="fld">전화번호<input id="cphone" type="tel" inputmode="tel" value="${esc(c.phone)}" placeholder="010-0000-0000" autocomplete="off"></label>
-    <label class="fld">장부 번호 (종이 장부의 동그라미 번호)<input id="cbook" inputmode="numeric" value="${esc(c.bookNo)}" autocomplete="off"></label>
+    <label class="fld">장부 번호 ${cid ? '' : `(추천 ${rec}번 · 마지막 번호 +1)`}<input id="cbook" inputmode="numeric" value="${esc(c.bookNo)}" placeholder="${rec}" autocomplete="off"></label>
+    <div class="err" id="cbookwarn" style="margin-top:-6px"></div>
     <label class="fld">메모<input id="cmemo" value="${esc(c.memo)}" autocomplete="off"></label>
     ${cid ? '' : `<label class="fld">최초 충전 (오늘 받은 금액 · 충전 집계에 포함)<input id="ccharge" inputmode="numeric" placeholder="0" autocomplete="off"></label>
     <label class="fld">이월 잔액 (종이 장부의 마지막 잔액 · 충전 집계 제외)<input id="ccarry" inputmode="numeric" placeholder="0" autocomplete="off"></label>
@@ -529,11 +538,18 @@ function openCustomerForm(cid){
   const carry = $('#ccarry'), charge = $('#ccharge');
   const updStart = () => { const t = numOf(charge.value) + numOf(carry.value); $('#cprev').innerHTML = t ? `등록 후 잔액 <b>${won(t)}원</b>` : ''; };
   [carry, charge].forEach(el => { if (el) el.addEventListener('input', () => { el.value = fmtNum(el.value); updStart(); }); });
+  const bookEl = $('#cbook');
+  bookEl.addEventListener('input', () => {
+    bookEl.value = bookEl.value.replace(/\D/g, '');
+    $('#cbookwarn').textContent = bookNoTaken(bookEl.value, cid) ? `${bookEl.value}번은 이미 쓰고 있는 번호예요.` : '';
+  });
   if (!cid) setTimeout(() => $('#cname') && $('#cname').focus(), 80);
 }
 function saveCustomer(cid){
   const name = $('#cname').value.trim();
   if (!name) { $('#cerr').textContent = '이름을 입력해 주세요.'; return; }
+  const bk = $('#cbook').value.replace(/\D/g, '');
+  if (bookNoTaken(bk, cid)) { $('#cerr').textContent = `장부 번호 ${bk}번은 이미 다른 손님이 쓰고 있어요. (추천 ${nextBookNo()}번)`; return; }
   const data = {name, phone:$('#cphone').value.trim(), bookNo:$('#cbook').value.replace(/\D/g, ''), memo:$('#cmemo').value.trim()};
   if (cid) { Object.assign(getC(cid), data); save(); closeSheet(); toast('손님 정보를 수정했어요'); return; }
   const id = uid();
@@ -727,7 +743,7 @@ function renderSettings(){
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
     ${SHOP_INFO}
-    <div class="foot">CIBO 선결제 장부 v1.8 (오프라인 지원)</div>
+    <div class="foot">CIBO 선결제 장부 v1.9 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
