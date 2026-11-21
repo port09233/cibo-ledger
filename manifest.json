@@ -1,7 +1,7 @@
 {
-  "name": "CIBO 선결재 장부",
+  "name": "CIBO 선결제 장부",
   "short_name": "CIBO 장부",
-  "description": "CIBO 손님 선결재 충전·사용 장부",
+  "description": "CIBO 손님 선결제 충전·사용 장부",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

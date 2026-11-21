@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>CIBO 선결재 장부</title>
+<title>CIBO 선결제 장부</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23fff' stroke='%232f8f4e' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23d23b3b' stroke-width='4'/%3E%3Ctext x='50' y='59' text-anchor='middle' font-size='25' font-weight='700' fill='%235b7682' font-family='Arial'%3ECIBO%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -149,12 +149,12 @@ select{height:44px;border:1px solid var(--line);border-radius:10px;background:#f
 <script>
 'use strict';
 /* =========================================================
-   CIBO 선결재 장부 v1.7 (오프라인 지원)
+   CIBO 선결제 장부 v1.8 (오프라인 지원)
    - 데이터는 이 기기 브라우저(localStorage)에만 저장
    - 외상(마이너스 잔액) 불허, 사용자 1명
    ========================================================= */
 const KEY = 'cibo-ledger-v1';
-const DEFAULT_TPL = '[{가게}] 선결재 장부 안내\n{이름} 님, {날짜} {금액}원 {구분}되었습니다.\n현재 잔액: {잔액}원\n감사합니다.';
+const DEFAULT_TPL = '[{가게}] 선결제 장부 안내\n{이름} 님, {날짜} {금액}원 {구분}되었습니다.\n현재 잔액: {잔액}원\n감사합니다.';
 const TYPE = {carry:'이월', charge:'충전', use:'사용'};
 const LOGO = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#2f8f4e" stroke-width="5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#d23b3b" stroke-width="4"/><text x="50" y="59" text-anchor="middle" font-size="25" font-weight="700" fill="#5b7682" font-family="Arial,Helvetica,sans-serif" letter-spacing="1">CIBO</text></svg>`;
 const SHOP_INFO = `<div class="foot"><div>서울 동대문구 천장산로4길 45 1층</div><a href="https://www.instagram.com/cibo_pasta" target="_blank" rel="noopener">Instagram @cibo_pasta</a></div>`;
@@ -194,7 +194,7 @@ function normalize(d){
   const e = emptyDb();
   return {
     app:e.app, version:1,
-    shop:{...e.shop, ...(d.shop || {})},
+    shop:(sh => ({...sh, template:String(sh.template || DEFAULT_TPL).replace(/선결\u{C7AC}/gu, '선결제')}))({...e.shop, ...(d.shop || {})}),
     customers:(d.customers || []).map(c => ({
       id:String(c.id || uid()), name:String(c.name || '이름없음'), phone:String(c.phone || ''),
       bookNo:c.bookNo ?? '', memo:String(c.memo || ''), createdAt:c.createdAt || new Date().toISOString()})),
@@ -309,7 +309,7 @@ function renderList(){
     if (e.date === td) { if (e.type === 'charge') tChg += e.amount; else if (e.type === 'use') tUse += e.amount; }
   }
   app.innerHTML = `
-  <header class="top"><span class="logo">${LOGO}</span><h1>${esc(db.shop.name)} 선결재 장부</h1>
+  <header class="top"><span class="logo">${LOGO}</span><h1>${esc(db.shop.name)} 선결제 장부</h1>
     <button class="iconbtn" onclick="go('settings')" aria-label="설정·백업">⚙</button></header>
   <main>
     ${inAppBanner()}
@@ -520,11 +520,15 @@ function openCustomerForm(cid){
     <label class="fld">전화번호<input id="cphone" type="tel" inputmode="tel" value="${esc(c.phone)}" placeholder="010-0000-0000" autocomplete="off"></label>
     <label class="fld">장부 번호 (종이 장부의 동그라미 번호)<input id="cbook" inputmode="numeric" value="${esc(c.bookNo)}" autocomplete="off"></label>
     <label class="fld">메모<input id="cmemo" value="${esc(c.memo)}" autocomplete="off"></label>
-    ${cid ? '' : `<label class="fld">이월 잔액 (종이 장부의 마지막 잔액)<input id="ccarry" inputmode="numeric" placeholder="0" autocomplete="off"></label>`}
+    ${cid ? '' : `<label class="fld">최초 충전 (오늘 받은 금액 · 충전 집계에 포함)<input id="ccharge" inputmode="numeric" placeholder="0" autocomplete="off"></label>
+    <label class="fld">이월 잔액 (종이 장부의 마지막 잔액 · 충전 집계 제외)<input id="ccarry" inputmode="numeric" placeholder="0" autocomplete="off"></label>
+    <div class="preview" id="cprev"></div>`}
     <div class="err" id="cerr"></div>
     <button class="btn brand full" onclick="saveCustomer('${cid || ''}')">저장</button>
     ${cid ? `<button class="btn ghost-red full" onclick="askDeleteCustomer('${cid}')">손님 삭제</button>` : ''}`);
-  const carry = $('#ccarry'); if (carry) carry.addEventListener('input', () => { carry.value = fmtNum(carry.value); });
+  const carry = $('#ccarry'), charge = $('#ccharge');
+  const updStart = () => { const t = numOf(charge.value) + numOf(carry.value); $('#cprev').innerHTML = t ? `등록 후 잔액 <b>${won(t)}원</b>` : ''; };
+  [carry, charge].forEach(el => { if (el) el.addEventListener('input', () => { el.value = fmtNum(el.value); updStart(); }); });
   if (!cid) setTimeout(() => $('#cname') && $('#cname').focus(), 80);
 }
 function saveCustomer(cid){
@@ -534,8 +538,10 @@ function saveCustomer(cid){
   if (cid) { Object.assign(getC(cid), data); save(); closeSheet(); toast('손님 정보를 수정했어요'); return; }
   const id = uid();
   db.customers.push({id, ...data, createdAt:new Date().toISOString()});
-  const carry = numOf($('#ccarry').value);
-  if (carry > 0) db.entries.push({id:uid(), customerId:id, date:today(), type:'carry', amount:carry, memo:'종이 장부 이월', seq:Date.now(), balanceAfter:carry, updatedAt:''});
+  const carry = numOf($('#ccarry').value), charge = numOf($('#ccharge').value), now = Date.now(), at = new Date().toISOString();
+  if (carry > 0) db.entries.push({id:uid(), customerId:id, date:today(), type:'carry', amount:carry, memo:'종이 장부 이월', seq:now, balanceAfter:0, updatedAt:at});
+  if (charge > 0) db.entries.push({id:uid(), customerId:id, date:today(), type:'charge', amount:charge, memo:'최초 충전', seq:now + 1, balanceAfter:0, updatedAt:at});
+  recomputeAll();
   save();
   pending = () => go('detail', id);
   closeSheet();
@@ -584,7 +590,7 @@ function buildImage(cid, period){
   drawLogo(g, 160, 170, 96);
   g.textBaseline = 'middle'; g.textAlign = 'left';
   g.fillStyle = '#2f3d44'; g.font = `700 60px ${F}`; g.fillText(db.shop.name, 290, 145);
-  g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('선결재 장부 내역서', 292, 205);
+  g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('선결제 장부 내역서', 292, 205);
   g.fillStyle = '#2f3d44'; g.font = `700 54px ${F}`; g.fillText(c.name + ' 님', 70, 340);
   g.fillStyle = '#f2f6f7'; roundRect(g, 60, 395, W - 120, 120, 24); g.fill();
   g.fillStyle = '#7d8b91'; g.font = `36px ${F}`; g.fillText('현재 잔액', 100, 455);
@@ -721,7 +727,7 @@ function renderSettings(){
       <button class="btn ghost-red full" onclick="askReset()">모든 데이터 삭제</button>
     </div>
     ${SHOP_INFO}
-    <div class="foot">CIBO 선결재 장부 v1.7 (오프라인 지원)</div>
+    <div class="foot">CIBO 선결제 장부 v1.8 (오프라인 지원)</div>
   </main>`;
   $('#slow').addEventListener('input', e => { e.target.value = fmtNum(e.target.value); });
 }
@@ -751,7 +757,7 @@ function backupCover(){
   g.fillStyle = '#5b7682'; g.fillRect(0, 0, W, 18);
   drawLogo(g, W / 2, 330, 170);
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillStyle = '#2f3d44'; g.font = `800 76px ${F}`; g.fillText(`${db.shop.name} 선결재 장부 백업`, W / 2, 620);
+  g.fillStyle = '#2f3d44'; g.font = `800 76px ${F}`; g.fillText(`${db.shop.name} 선결제 장부 백업`, W / 2, 620);
   g.fillStyle = '#7d8b91'; g.font = `44px ${F}`; g.fillText(`백업 날짜 ${ymd(today())}`, W / 2, 710);
   g.fillStyle = '#f2f6f7'; roundRect(g, 140, 790, W - 280, 300, 32); g.fill();
   g.fillStyle = '#2f3d44'; g.font = `600 52px ${F}`;
@@ -819,7 +825,7 @@ function openPasteImport(){
 }
 function importText(text){
   let d; try { d = JSON.parse(readBackupPayload(String(text)).trim()); } catch(err) { toast('백업 내용을 읽을 수 없어요. 처음부터 끝까지 전부 붙여넣었는지 확인해 주세요', null, null, 5000); return; }
-  if (!d || d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결재 장부 백업이 아니에요'); return; }
+  if (!d || d.app !== 'prepaid-ledger' || !Array.isArray(d.customers) || !Array.isArray(d.entries)) { toast('선결제 장부 백업이 아니에요'); return; }
   confirmSheet('장부 불러오기', `손님 ${d.customers.length}명, 기록 ${d.entries.length}건을 불러옵니다. 지금 휴대폰에 있는 장부(손님 ${db.customers.length}명)는 덮어써져요.`, '불러오기', true, () => {
     const pin = db.shop.pin;
     db = normalize(d); db.shop.pin = pin; recomputeAll(); save();
